@@ -1,0 +1,15 @@
+{
+  "name": "cek-nik",
+  "version": "1.0.0",
+  "main": "build_wilayah.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "idn-area-data": "^4.0.1"
+  }
+}
