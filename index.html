@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Cek NIK</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Font & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #007b83 0%, #00c6a7 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            color: #333;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px 20px;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            color: #007b83;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid #ccd1d9;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            width: 100%;
+        }
+
+        input:focus {
+            border-color: #007b83;
+            box-shadow: 0 0 0 3px rgba(0, 123, 131, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #007b83 0%, #00c6a7 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 131, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 15px;
+            text-align: left;
+            font-size: 13px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-item {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #dee2e6;
+        }
+        
+        .result-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-size: 11px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .result-label i {
+            color: #007b83;
+            font-size: 13px;
+            width: 14px;
+            text-align: center;
+        }
+
+        .result-value {
+            font-size: 14px;
+            color: #212529;
+            font-weight: 600;
+            padding-left: 20px;
+        }
+
+        .result-value .sub-value {
+            font-size: 13px;
+            font-weight: 400;
+            color: #495057;
+            margin-top: 2px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error {
+            color: #dc3545;
+            font-weight: 500;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px;
+            background: #ffe3e5;
+            border-radius: 10px;
+            border: 1px solid #f5c2c7;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px 15px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1><i class="fa-solid fa-id-card"></i> Cek NIK</h1>
+    <p class="subtitle">Masukkan NIK untuk melihat informasi dasar</p>
+
+    <div class="input-group">
+        <input type="text" id="nikInput" placeholder="Masukkan 16 digit NIK" maxlength="16" inputmode="numeric">
+        <button onclick="cek()"><i class="fa-solid fa-magnifying-glass"></i> Cek</button>
+    </div>
+
+    <div id="result" class="result hidden"></div>
+</div>
+
+<script src="wilayah.js"></script>
+<script>
+function toTitleCase(str) {
+    if (!str) return "Tidak diketahui";
+    return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
+}
+
+function nikParse(nik) {
+    nik = nik.toString();
+    let result;
+
+    if (nik.length == 16 && /^\d+$/.test(nik)) {
+        const nowTahun = new Date().getFullYear().toString().substr(-2);
+        const nikTahun = nik.substring(10, 12);
+        const nikTanggal = parseInt(nik.substring(6, 8));
+
+        result = {
+            nik: nik,
+            wilayah: {
+                provinsi: toTitleCase(wilayah.provinsi[nik.substring(0, 2)]),
+                kotakab: toTitleCase(wilayah.kabkot[nik.substring(0, 4)]),
+                kecamatan: toTitleCase(wilayah.kecamatan[nik.substring(0, 6)])
+            },
+            kelamin: (nikTanggal > 40 ? "Perempuan" : "Laki-laki"),
+            lahir: {
+                tanggal: (nikTanggal > 40 ? nikTanggal - 40 : nikTanggal).toString().padStart(2, '0'),
+                bulan: nik.substring(8, 10),
+                tahun: (nikTahun < nowTahun ? `20${nikTahun}` : `19${nikTahun}`)
+            },
+            uniqcode: nik.substring(12, 16)
+        }
+    } else {
+        result = { error: "NIK harus 16 digit angka" }
+    }
+
+    return result;
+}
+
+function cek() {
+    const nik = document.getElementById("nikInput").value;
+    const data = nikParse(nik);
+    const el = document.getElementById("result");
+
+    el.classList.remove("hidden");
+
+    if (data.error) {
+        el.innerHTML = `<span class="error"><i class="fa-solid fa-circle-exclamation"></i> ${data.error}</span>`;
+        return;
+    }
+
+    el.innerHTML = `
+        <div class="result-item">
+            <div class="result-label"><i class="fa-regular fa-id-badge"></i> NIK</div>
+            <div class="result-value">${data.nik}</div>
+        </div>
+        <div class="result-item">
+            <div class="result-label"><i class="fa-solid fa-venus-mars"></i> Jenis Kelamin</div>
+            <div class="result-value">${data.kelamin}</div>
+        </div>
+        <div class="result-item">
+            <div class="result-label"><i class="fa-regular fa-calendar"></i> Tanggal Lahir</div>
+            <div class="result-value">${data.lahir.tanggal}-${data.lahir.bulan}-${data.lahir.tahun}</div>
+        </div>
+        <div class="result-item">
+            <div class="result-label"><i class="fa-solid fa-map-location-dot"></i> Wilayah</div>
+            <div class="result-value">
+                <div class="sub-value"><b>Provinsi:</b> ${data.wilayah.provinsi}</div>
+                <div class="sub-value"><b>Kota/Kab:</b> ${data.wilayah.kotakab}</div>
+                <div class="sub-value"><b>Kecamatan:</b> ${data.wilayah.kecamatan}</div>
+            </div>
+        </div>
+        <div class="result-item">
+            <div class="result-label"><i class="fa-solid fa-hashtag"></i> Nomor Unik</div>
+            <div class="result-value">${data.uniqcode}</div>
+        </div>
+    `;
+}
+
+// enter support
+document.getElementById("nikInput").addEventListener("keypress", function(e){
+    if(e.key === "Enter") cek();
+});
+
+// only allow numbers
+document.getElementById("nikInput").addEventListener("input", function(e){
+    this.value = this.value.replace(/[^0-9]/g, '');
+});
+</script>
+
+</body>
+</html>
