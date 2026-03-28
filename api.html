@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Cek NIK</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #007b83, #00c6a7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background: #fff;
+    padding: 30px;
+    border-radius: 15px;
+    width: 350px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+h1 { margin-bottom: 5px; }
+
+.subtitle {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+}
+
+input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+button {
+    background: #007b83;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.result {
+    margin-top: 20px;
+    text-align: left;
+    font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🔍 Cek NIK</h1>
+    <p class="subtitle">Auto detect wilayah Indonesia</p>
+
+    <div class="input-group">
+        <input type="text" id="nikInput" placeholder="Masukkan 16 digit NIK">
+        <button onclick="cek()">Cek</button>
+    </div>
+
+    <div id="result" class="result"></div>
+</div>
+
+<script>
+// 🔥 PROXY UNTUK BYPASS CORS
+const PROXIES = [
+    "https://api.allorigins.win/raw?url=",
+    "https://corsproxy.io/?",
+    "https://cors-anywhere.herokuapp.com/"
+];
+
+async function fetchAPI(url) {
+    for (let proxy of PROXIES) {
+        try {
+            const finalUrl = proxy.includes("encodeURIComponent")
+                ? proxy + encodeURIComponent(url)
+                : proxy + encodeURIComponent(url);
+
+            const res = await fetch(finalUrl);
+            if (!res.ok) continue;
+
+            const data = await res.json();
+            return data;
+
+        } catch (err) {
+            console.warn("Proxy gagal:", proxy);
+        }
+    }
+
+    throw new Error("Semua proxy gagal");
+}
+
+async function getWilayah(nik) {
+    const kodeProv = nik.substring(0,2);
+    const kodeKab = `${nik.substring(0,2)}.${nik.substring(2,4)}`;
+    const kodeKec = `${nik.substring(0,2)}.${nik.substring(2,4)}.${nik.substring(4,6)}`;
+
+    try {
+        // 🔥 PROVINSI
+        const provData = await fetchAPI("https://wilayah.id/api/provinces.json");
+        const prov = provData.data.find(p => p.code == kodeProv);
+
+        // 🔥 KAB/KOTA
+        const kabData = await fetchAPI(`https://wilayah.id/api/regencies/${kodeProv}.json`);
+        const kab = kabData.data.find(k => k.code == kodeKab);
+
+        // 🔥 KECAMATAN
+        const kecData = await fetchAPI(`https://wilayah.id/api/districts/${kodeKab}.json`);
+        const kec = kecData.data.find(k => k.code == kodeKec);
+
+        return {
+            provinsi: prov?.name || "Tidak ditemukan",
+            kabkot: kab?.name || "Tidak ditemukan",
+            kecamatan: kec?.name || "Tidak ditemukan"
+        };
+
+    } catch (err) {
+        console.error(err);
+        return {
+            provinsi: "Gagal load API",
+            kabkot: "-",
+            kecamatan: "-"
+        };
+    }
+}
+
+function parseNIK(nik) {
+    if (nik.length != 16) return { error: "NIK harus 16 digit" };
+
+    const nowTahun = new Date().getFullYear().toString().substr(-2);
+    const nikTahun = nik.substring(10, 12);
+    const nikTanggal = parseInt(nik.substring(6, 8));
+
+    return {
+        kelamin: (nikTanggal > 40 ? "Perempuan" : "Laki-laki"),
+        tanggal: (nikTanggal > 40 ? nikTanggal - 40 : nikTanggal),
+        bulan: nik.substring(8, 10),
+        tahun: (nikTahun < nowTahun ? `20${nikTahun}` : `19${nikTahun}`),
+        uniq: nik.substring(12, 16)
+    };
+}
+
+async function cek() {
+    const nik = document.getElementById("nikInput").value;
+    const el = document.getElementById("result");
+
+    if (nik.length != 16) {
+        el.innerHTML = `<span style="color:red">NIK harus 16 digit</span>`;
+        return;
+    }
+
+    el.innerHTML = "⏳ Loading wilayah...";
+
+    const wilayah = await getWilayah(nik);
+    const data = parseNIK(nik);
+
+    el.innerHTML = `
+        <b>NIK:</b> ${nik} <br><br>
+
+        <b>Jenis Kelamin:</b><br>
+        ${data.kelamin} <br><br>
+
+        <b>Tanggal Lahir:</b><br>
+        ${data.tanggal}-${data.bulan}-${data.tahun} <br><br>
+
+        <b>Wilayah:</b><br>
+        Provinsi : ${wilayah.provinsi}<br>
+        Kab/Kota : ${wilayah.kabkot}<br>
+        Kecamatan : ${wilayah.kecamatan}<br><br>
+
+        <b>Nomor Unik:</b><br>
+        ${data.uniq}
+    `;
+}
+
+// enter support
+document.getElementById("nikInput").addEventListener("keypress", function(e){
+    if(e.key === "Enter") cek();
+});
+</script>
+
+</body>
+</html>
